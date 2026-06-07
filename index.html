@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A beautiful, state-driven To-Do List app with full CRUD, filtering, and localStorage persistence."
+    />
+    <title>TaskFlow — To-Do App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Background Orbs -->
+    <div class="bg-orb orb-1" aria-hidden="true"></div>
+    <div class="bg-orb orb-2" aria-hidden="true"></div>
+    <div class="bg-orb orb-3" aria-hidden="true"></div>
+
+    <main class="app-container" role="main">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="header-brand">
+          <div class="brand-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M9 11l3 3L22 4" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="brand-title">TaskFlow</h1>
+            <p class="brand-subtitle">Stay focused, get things done</p>
+          </div>
+        </div>
+        <button
+          id="btn-theme-toggle"
+          class="theme-toggle"
+          aria-label="Toggle light/dark mode"
+          title="Toggle theme"
+        >
+          <span class="theme-icon theme-icon--sun" aria-hidden="true">☀️</span>
+          <span class="theme-icon theme-icon--moon" aria-hidden="true">🌙</span>
+        </button>
+      </header>
+
+      <!-- Stats Bar -->
+      <section class="stats-bar" aria-label="Task statistics">
+        <div class="stat-card">
+          <span class="stat-number" id="stat-total">0</span>
+          <span class="stat-label">Total</span>
+        </div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat-card">
+          <span class="stat-number stat-number--active" id="stat-active">0</span>
+          <span class="stat-label">Active</span>
+        </div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat-card">
+          <span class="stat-number stat-number--done" id="stat-completed">0</span>
+          <span class="stat-label">Done</span>
+        </div>
+      </section>
+
+      <!-- Input Area -->
+      <section class="input-section" aria-label="Add new task">
+        <form id="form-add-task" class="add-task-form" novalidate>
+          <div class="input-wrapper">
+            <span class="input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19" stroke-linecap="round"/>
+                <line x1="5" y1="12" x2="19" y2="12" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <input
+              type="text"
+              id="input-task"
+              class="task-input"
+              placeholder="What needs to be done today?"
+              aria-label="New task description"
+              maxlength="200"
+              autocomplete="off"
+            />
+            <span class="char-counter" id="char-counter" aria-live="polite">0/200</span>
+          </div>
+          <div class="form-actions">
+            <div class="priority-selector" role="group" aria-label="Task priority">
+              <button type="button" class="priority-btn priority-btn--low active" data-priority="low" aria-pressed="true">
+                Low
+              </button>
+              <button type="button" class="priority-btn priority-btn--medium" data-priority="medium" aria-pressed="false">
+                Medium
+              </button>
+              <button type="button" class="priority-btn priority-btn--high" data-priority="high" aria-pressed="false">
+                High
+              </button>
+            </div>
+            <button type="submit" class="btn-add" id="btn-add-task" aria-label="Add task">
+              <span>Add Task</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19" stroke-linecap="round"/>
+                <line x1="5" y1="12" x2="19" y2="12" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Filter & Sort Bar -->
+      <section class="filter-bar" aria-label="Filter and sort tasks">
+        <div class="filter-tabs" role="tablist" aria-label="Task filter">
+          <button
+            class="filter-tab active"
+            role="tab"
+            data-filter="all"
+            id="tab-all"
+            aria-selected="true"
+            aria-controls="task-list"
+          >All <span class="filter-badge" id="badge-all">0</span></button>
+          <button
+            class="filter-tab"
+            role="tab"
+            data-filter="active"
+            id="tab-active"
+            aria-selected="false"
+            aria-controls="task-list"
+          >Active <span class="filter-badge" id="badge-active">0</span></button>
+          <button
+            class="filter-tab"
+            role="tab"
+            data-filter="completed"
+            id="tab-completed"
+            aria-selected="false"
+            aria-controls="task-list"
+          >Completed <span class="filter-badge" id="badge-completed">0</span></button>
+        </div>
+        <div class="filter-actions">
+          <label class="sort-label" for="sort-select">Sort by:</label>
+          <select id="sort-select" class="sort-select" aria-label="Sort tasks">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="priority">Priority</option>
+            <option value="alpha">A → Z</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Bulk Actions -->
+      <div class="bulk-actions" id="bulk-actions" aria-label="Bulk task actions">
+        <button class="bulk-btn" id="btn-mark-all" aria-label="Mark all tasks as complete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Mark All Done
+        </button>
+        <button class="bulk-btn bulk-btn--danger" id="btn-clear-completed" aria-label="Delete all completed tasks">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Clear Done
+        </button>
+      </div>
+
+      <!-- Task List -->
+      <section class="task-list-section" aria-label="Task list">
+        <ul
+          id="task-list"
+          class="task-list"
+          role="list"
+          aria-live="polite"
+          aria-label="Tasks"
+        ></ul>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="empty-state" aria-live="polite" hidden>
+          <div class="empty-illustration" aria-hidden="true">
+            <svg viewBox="0 0 120 120" fill="none">
+              <circle cx="60" cy="60" r="50" fill="url(#gradient-empty)" opacity="0.15"/>
+              <path d="M40 55l13 13 27-27" stroke="url(#gradient-check)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs>
+                <linearGradient id="gradient-empty" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#a78bfa"/>
+                  <stop offset="100%" stop-color="#38bdf8"/>
+                </linearGradient>
+                <linearGradient id="gradient-check" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#a78bfa"/>
+                  <stop offset="100%" stop-color="#38bdf8"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <h2 class="empty-title" id="empty-title">No tasks here!</h2>
+          <p class="empty-desc" id="empty-desc">Add a new task above to get started.</p>
+        </div>
+      </section>
+
+      <!-- Edit Modal -->
+      <div
+        id="edit-modal"
+        class="modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        hidden
+      >
+        <div class="modal-card">
+          <div class="modal-header">
+            <h2 id="modal-title" class="modal-title">Edit Task</h2>
+            <button class="modal-close" id="btn-modal-close" aria-label="Close edit dialog">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round"/>
+                <line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <label for="edit-input" class="edit-label">Task Description</label>
+            <textarea
+              id="edit-input"
+              class="edit-textarea"
+              maxlength="200"
+              rows="3"
+              aria-label="Edit task description"
+            ></textarea>
+            <div class="edit-priority-label">Priority</div>
+            <div class="priority-selector" role="group" aria-label="Edit task priority">
+              <button type="button" class="priority-btn priority-btn--low" data-edit-priority="low" aria-pressed="false">Low</button>
+              <button type="button" class="priority-btn priority-btn--medium" data-edit-priority="medium" aria-pressed="false">Medium</button>
+              <button type="button" class="priority-btn priority-btn--high" data-edit-priority="high" aria-pressed="false">High</button>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-secondary" id="btn-cancel-edit">Cancel</button>
+            <button class="btn-save" id="btn-save-edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="17 21 17 13 7 13 7 21" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="7 3 7 8 15 8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Notification -->
+      <div id="toast-container" class="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <p>Built with <span aria-label="love">❤️</span> using Vanilla JS · <strong>TaskFlow</strong></p>
+      </footer>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
